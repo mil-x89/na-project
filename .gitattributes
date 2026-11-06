@@ -1,0 +1,10 @@
+# Store text files with LF line endings in the repository (Git converts them on
+# checkout as needed), so the project looks the same on Windows, macOS and Linux.
+* text=auto eol=lf
+
+# Images are binary: never touch their bytes.
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.ico  binary
+*.webp binary

@@ -1,0 +1,36 @@
+# Only what is needed to install and run the mockup on desktop is kept:
+#   main.py, gialos/, assets/ (images the app shows), requirements.txt, README.md
+
+# Project notes for the AI assistant
+CLAUDE.md
+.claude/
+
+# Asset generator scripts (the generated images are already in assets/)
+scripts/
+
+# Icons only used by the web version and by packaged builds (not by `flet run main.py`)
+assets/icon.png
+assets/favicon.png
+assets/icons/
+
+# Virtual environment (each user creates their own, see README)
+.venv/
+venv/
+env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Flet runtime files
+.flet/
+storage/
+build/
+
+# Editors and OS files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
