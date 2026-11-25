@@ -73,7 +73,13 @@ RADIUS_SMALL = 16
 # --- Sizes ---------------------------------------------------------------------
 PHONE_WIDTH = 390
 PHONE_HEIGHT = 844
-MAX_CONTENT_WIDTH = 480     # content column cap in wide browser windows
+# Phone frame shown around the app in wide browser windows (e.g. Codespaces)
+FRAME_BREAKPOINT = 600      # wider than this (in a browser) -> draw the phone frame
+FRAME_MARGIN = 24           # space around the frame
+FRAME_BEZEL = 10            # dark edge around the screen
+FRAME_RADIUS = 48           # outer corner radius (screen radius = this - bezel)
+FRAME_BEZEL_COLOR = "#14262E"
+FRAME_BACKDROP = ("#E3F1F4", "#F4EADB")   # soft sea -> sand gradient behind the phone
 HERO_HEIGHT = 360           # top-match photo
 DETAIL_HERO_HEIGHT = 280
 BUTTON_HEIGHT = 56          # primary CTA (thumb zone)

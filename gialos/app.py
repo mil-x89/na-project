@@ -36,35 +36,71 @@ class GialosApp:
         page.theme = theme.app_theme()
         page.theme_mode = ft.ThemeMode.LIGHT
         page.bgcolor = theme.BACKGROUND
-        page.on_resize = lambda _: self._fit_width()
-        self._fit_width(update=False)
+        page.padding = 0
+        page.on_resize = lambda _: self._on_resize()
+        self._framed = self._wants_frame()
         if not page.web:
             page.window.width = theme.PHONE_WIDTH
             page.window.height = theme.PHONE_HEIGHT
             page.window.icon = str(WINDOW_ICON)   # Windows only; ignored elsewhere
 
     # --- Rendering ---------------------------------------------------------
-    def _fit_width(self, update: bool = True) -> None:
-        """Keep content at phone width in wide (desktop browser) windows."""
-        extra = (self.page.width or 0) - theme.MAX_CONTENT_WIDTH
-        self.page.padding = ft.Padding.symmetric(horizontal=max(0, extra / 2))
-        if update:
-            self.page.update()
+    def _wants_frame(self) -> bool:
+        """Draw a phone frame only in a wide browser window; on a phone or in the
+        phone-sized desktop window the app fills the screen."""
+        return bool(self.page.web) and (self.page.width or 0) > theme.FRAME_BREAKPOINT
+
+    def _on_resize(self) -> None:
+        self._framed = self._wants_frame()
+        self.render()
 
     def render(self) -> None:
         """Rebuild the whole current screen (cheap for a mockup, keeps code simple)."""
         screen = self.state.screen
-        self.page.appbar = build_top_bar(
-            self.state,
-            self.toggle_language,
-            on_back=self.go_back if screen == st.DETAIL else None,
-        )
-        self.page.navigation_bar = self._navigation_bar() if screen in st.TABS else None
-        self.page.controls = [VIEWS[screen](self)]
+        parts: list[ft.Control] = [
+            build_top_bar(
+                self.state,
+                self.toggle_language,
+                on_back=self.go_back if screen == st.DETAIL else None,
+            ),
+            ft.Container(content=VIEWS[screen](self), expand=True),
+        ]
+        if screen in st.TABS:
+            parts.append(self._navigation_bar())
+        app_screen = ft.Column(parts, spacing=0, expand=True)
+        self.page.controls = [self._phone_frame(app_screen) if self._framed else ft.SafeArea(app_screen, expand=True)]
         self.page.update()
         if self._reveal_target is not None:
             self.page.run_task(self._play_reveal, self._reveal_target)
             self._reveal_target = None
+
+    def _phone_frame(self, app_screen: ft.Control) -> ft.Control:
+        """Centre the app in a phone-shaped frame on a soft backdrop."""
+        height = min(theme.PHONE_HEIGHT, (self.page.height or theme.PHONE_HEIGHT) - 2 * theme.FRAME_MARGIN)
+        phone = ft.Container(
+            content=ft.Container(
+                content=app_screen,
+                bgcolor=theme.BACKGROUND,
+                border_radius=theme.FRAME_RADIUS - theme.FRAME_BEZEL,
+                clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+            ),
+            width=theme.PHONE_WIDTH + 2 * theme.FRAME_BEZEL,
+            height=height,
+            padding=theme.FRAME_BEZEL,
+            bgcolor=theme.FRAME_BEZEL_COLOR,
+            border_radius=theme.FRAME_RADIUS,
+            shadow=ft.BoxShadow(blur_radius=48, spread_radius=2, color=theme.SHADOW, offset=ft.Offset(0, 20)),
+        )
+        return ft.Container(
+            content=phone,
+            alignment=ft.Alignment.CENTER,
+            expand=True,
+            gradient=ft.LinearGradient(
+                begin=ft.Alignment.TOP_LEFT,
+                end=ft.Alignment.BOTTOM_RIGHT,
+                colors=list(theme.FRAME_BACKDROP),
+            ),
+        )
 
     def _navigation_bar(self) -> ft.NavigationBar:
         return ft.NavigationBar(
