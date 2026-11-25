@@ -1,0 +1,68 @@
+# Builds the app as a static website and publishes it on GitHub Pages
+# (https://<owner>.github.io/<repo>/) every time something is pushed to main.
+# The app then runs entirely in the visitor's browser: no install, no account.
+#
+# One-time setup on GitHub: Settings -> Pages -> Source: "GitHub Actions".
+
+name: Publish website
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Flet
+        run: pip install -r requirements.txt
+
+      - name: Prepare the website build
+        run: |
+          # The browser cannot look at files on disk, so save the list of beach photos.
+          python -m gialos.images --write-manifest
+          # Inside the browser only Flet itself is needed (not the desktop/CLI parts).
+          echo "flet==1.0.5" > requirements.txt
+
+      - name: Build the website
+        run: >
+          flet publish main.py
+          --distpath dist
+          --base-url "${{ github.event.repository.name }}"
+          --app-name gialos
+          --app-short-name gialos
+          --app-description "Find your beach on Thassos"
+          --pwa-theme-color "#0A4D68"
+          --pwa-background-color "#FAF7F2"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
