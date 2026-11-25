@@ -1,0 +1,24 @@
+{
+  // GitHub Codespaces setup: installs the requirements, starts the app in web
+  // mode and opens it in a browser tab. A Codespace has no screen, so the app
+  // runs in the browser instead of a desktop window.
+  "name": "gialos",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+
+  "postCreateCommand": "pip install -r requirements.txt",
+  "postAttachCommand": "flet run --web --port 8550 --host 0.0.0.0 main.py",
+
+  "forwardPorts": [8550],
+  "portsAttributes": {
+    "8550": {
+      "label": "gialos app",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  }
+}
